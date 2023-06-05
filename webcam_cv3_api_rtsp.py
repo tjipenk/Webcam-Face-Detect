@@ -5,6 +5,10 @@ import datetime as dt
 import base64, requests, json
 from time import sleep
 
+# CCTV
+url = 'rtsp://cctv:Test123!@10.66.1.1:554/cam/realmonitor?channel=4&subtype=0'
+# cap = cv2.VideoCapture(url)
+
 
 # cascPath = "haarcascade_frontalface_default.xml"
 faceCascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
@@ -12,7 +16,7 @@ eye_cascade = cv2.CascadeClassifier('haarcascade_eye.xml')
 
 log.basicConfig(filename='webcam.log',level=log.INFO)
 
-video_capture = cv2.VideoCapture(0)
+video_capture = cv2.VideoCapture(url)
 anterior = 0
 
 def base64img(img):
@@ -25,7 +29,7 @@ def base64img(img):
 
 def get_face(b64img):
     try:
-        url = "http://10.10.1.79:8011//api/v1/recognition/recognize?limit=0&det_prob_threshold=0.995&prediction_count=1&status=true"
+        url = "http://10.10.1.79:8011//api/v1/recognition/recognize?limit=0&det_prob_threshold=0.0&prediction_count=1&status=true"
         payload = json.dumps({
             "file": b64img
             })

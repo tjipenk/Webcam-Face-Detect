@@ -15,6 +15,14 @@ log.basicConfig(filename='webcam.log',level=log.INFO)
 video_capture = cv2.VideoCapture(0)
 anterior = 0
 
+def get_pegawai(npp):
+    url = "https://sciapi.sucofindo.co.id/sciapimob/index.php/kehadiran/data_pribadi_by_npp?npp="+npp
+    response = requests.request("GET", url)
+    hasil = json.loads(response.text)
+    return hasil['data2'][0]
+
+
+
 def base64img(img):
     # Convert the image to base64 format
     with open(img, "rb") as f:
@@ -25,13 +33,14 @@ def base64img(img):
 
 def get_face(b64img):
     try:
-        url = "http://10.10.1.79:8011//api/v1/recognition/recognize?limit=0&det_prob_threshold=0.995&prediction_count=1&status=true"
+        url = "http://10.10.1.79:8011/api/v1/recognition/recognize?limit=0&det_prob_threshold=0.9995&prediction_count=1&status=true"
         payload = json.dumps({
             "file": b64img
             })
         headers = {
             'Content-Type': 'application/json',
-            'x-api-key': '2ce78139-36c0-4109-8df6-7dd3ce41edaa'
+            # 'x-api-key': '2ce78139-36c0-4109-8df6-7dd3ce41edaa'
+            'x-api-key': 'd7b19047-ee4b-46e9-ae17-592786708684'
             }
         response = requests.request("POST", url, headers=headers, data=payload)
         #print(payload)
@@ -65,7 +74,7 @@ while True:
         cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
         roi_gray = gray[y:y+h, x:x+w]
         roi_color = frame[y:y+h, x:x+w]
-        eyes = eye_cascade.detectMultiScale(roi_gray)
+        # eyes = eye_cascade.detectMultiScale(roi_gray)
         # print(faces)
         crop_face = gray[y-10:y + h+10, x-10:x + w +10]
         retval, buffer_img= cv2.imencode('.jpg', crop_face)
@@ -73,12 +82,17 @@ while True:
         # cv2.putText(frame, 'base64: '+b64img, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
         npp, sim = get_face(b64img)
-        print('NPP: '+str(npp)+' Similarity: '+ str(sim))
+        try: 
+            pegawai = get_pegawai(npp)
+            print('NPP: '+str(npp)+' Nama: '+str(pegawai['EMPLOYEE_NAME'])+' ORG: '+str(pegawai['NAMA_ORGANISASI'])+' UNIT: '+str(pegawai['NAMA_UNIT'])+' Similarity: '+ str(sim))
+        except:
+            print("Face not found")
+        # print(pegawai)
         # cv2.putText(frame, 'NPP: '+npp+' Similarity: '+ sim)
         cv2.putText(frame,'NPP: '+str(npp)+' Similarity: '+ str(sim), (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
-        for (ex,ey,ew,eh) in eyes:
-            cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
+        # for (ex,ey,ew,eh) in eyes:
+        #     cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
 
     if anterior != len(faces):
         anterior = len(faces)
